@@ -168,6 +168,39 @@ test('updateCard ignores unknown ids', () => {
   assert.equal(JSON.stringify(cards.value), before);
 });
 
+test('updateCard re-derives the column and syncs when the column field changes', () => {
+  // Grouped by Status (the default). Move A-2 from Done to a new value.
+  updateCard('A-2', { Status: 'In Progress' });
+  const c = cards.value.find((x) => x.id === 'A-2');
+  assert.equal(c.column, 'In Progress');
+  // The new value gets its own column; the now-empty Done column drops out.
+  assert.deepEqual(config.value.columns, ['To Do', 'In Progress']);
+});
+
+test('updateCard leaves column and column order alone when other fields change', () => {
+  updateCard('A-1', { Summary: 'Edited' });
+  const c = cards.value.find((x) => x.id === 'A-1');
+  assert.equal(c.column, 'To Do');
+  assert.deepEqual(config.value.columns, ['To Do', 'Done']);
+});
+
+test('updateCard re-derives the swimlane when the swimlane field changes', () => {
+  config.value = { ...config.value, swimlaneField: 'Assignee' };
+  updateCard('A-1', { Assignee: 'Zoe' });
+  const c = cards.value.find((x) => x.id === 'A-1');
+  assert.equal(c.swimlane, 'Zoe');
+});
+
+test('updateCard does not reset a dragged card when an unchanged field is re-submitted', () => {
+  // A-1 was dragged to Done, but its Status field still reads To Do.
+  moveCard('A-1', 'Done', '');
+  // The editor re-submits Status with its existing value plus a real edit.
+  updateCard('A-1', { Status: 'To Do', Summary: 'Edited' });
+  const c = cards.value.find((x) => x.id === 'A-1');
+  assert.equal(c.column, 'Done'); // position preserved, not clobbered
+  assert.equal(c.fields['Summary'], 'Edited');
+});
+
 test('distinctValues returns first-seen unique values', () => {
   assert.deepEqual(distinctValues('Assignee'), ['Alice', 'Bob']);
   assert.deepEqual(distinctValues('Status'), ['To Do', 'Done']);

@@ -47,7 +47,7 @@ Status: `[ ]` todo · `[~]` in progress · `[x]` done.
 
 ## Next
 
-- [ ] **Reflect card edits in the board immediately**
+- [x] **Reflect card edits in the board immediately**
   - Value: editing a field that drives the layout (the column or swimlane
     field — and later card colour) moves/recolours the card right away, without
     switching the view away and back. E.g. changing a card's Sprint while

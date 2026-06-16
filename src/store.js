@@ -120,6 +120,37 @@ function orderColumnValues(values) {
   return values.includes('') ? [...ordered, '(no value)'] : ordered;
 }
 
+/**
+ * Derive a card's column from its fields (blank collapses to the backlog).
+ * @param {Object<string,string>} fields
+ * @param {string} columnField
+ * @returns {string}
+ */
+function deriveColumn(fields, columnField) {
+  return (fields[columnField] ?? '').trim() || '(no value)';
+}
+
+/**
+ * Derive a card's swimlane from its fields ('' when swimlanes are off).
+ * @param {Object<string,string>} fields
+ * @param {string} swimlaneField
+ * @returns {string}
+ */
+function deriveSwimlane(fields, swimlaneField) {
+  return swimlaneField ? (fields[swimlaneField] ?? '').trim() : '';
+}
+
+/**
+ * Whether a field's value differs between two field maps.
+ * @param {Object<string,string>} before
+ * @param {Object<string,string>} after
+ * @param {string} field
+ * @returns {boolean}
+ */
+function fieldChanged(before, after, field) {
+  return (before[field] ?? '') !== (after[field] ?? '');
+}
+
 /** Recompute the column list from the current cards + columnField. */
 export function syncColumns() {
   const cols = orderColumnValues(distinctValues(config.value.columnField));
@@ -150,14 +181,33 @@ export function moveCard(id, column, swimlane) {
 }
 
 /**
- * Patch a single card's fields (called from the edit modal).
+ * Patch a single card's fields (called from the edit modal). When the edit
+ * changes the value of the column or swimlane field, the card's derived
+ * position is recomputed (and columns re-synced) so the board reflects the move
+ * immediately — but only when the value actually changed, so a position set by
+ * dragging isn't clobbered by re-submitting an unchanged field.
  * @param {string} id
  * @param {Object<string,string>} patch
  */
 export function updateCard(id, patch) {
-  cards.value = cards.value.map((c) =>
-    c.id === id ? { ...c, fields: { ...c.fields, ...patch } } : c,
-  );
+  const { columnField, swimlaneField } = config.value;
+  let columnChanged = false;
+
+  cards.value = cards.value.map((c) => {
+    if (c.id !== id) return c;
+    const fields = { ...c.fields, ...patch };
+    const next = { ...c, fields };
+    if (fieldChanged(c.fields, fields, columnField)) {
+      next.column = deriveColumn(fields, columnField);
+      columnChanged = true;
+    }
+    if (swimlaneField && fieldChanged(c.fields, fields, swimlaneField)) {
+      next.swimlane = deriveSwimlane(fields, swimlaneField);
+    }
+    return next;
+  });
+
+  if (columnChanged) syncColumns();
 }
 
 /**
@@ -176,10 +226,8 @@ export function loadCards(newCards, headers) {
   // Seed each card's column from the chosen field.
   cards.value = cards.value.map((c) => ({
     ...c,
-    column: (c.fields[cf] ?? '').trim() || '(no value)',
-    swimlane: config.value.swimlaneField
-      ? (c.fields[config.value.swimlaneField] ?? '').trim()
-      : '',
+    column: deriveColumn(c.fields, cf),
+    swimlane: deriveSwimlane(c.fields, config.value.swimlaneField),
   }));
   syncColumns();
 }
