@@ -37,8 +37,9 @@ Status: `[ ]` todo · `[~]` in progress · `[x]` done.
   - AC: committing with a failing gate is blocked locally; a clean tree commits
     normally; setup works from a fresh `npm install`.
   - Size: S
-  - Notes: prefer the lightest option that needs no new heavy dependency. Stays
-    consistent with the README's "No GitHub Actions" stance (local, not CI).
+  - Notes: zero-dependency route — a tracked hook (e.g. `.githooks/pre-commit`)
+    wired via `git config core.hooksPath`; no husky. Stays consistent with the
+    README's "No GitHub Actions" stance (local, not CI).
 
 ## Next
 
@@ -70,6 +71,35 @@ Status: `[ ]` todo · `[~]` in progress · `[x]` done.
   - AC: a search input hides non-matching cards across all columns/swimlanes;
     clearing it restores everything; column counts reflect the filtered view.
   - Size: M
+
+- [ ] **Single, sticky column headers across swimlanes**
+  - Value: with swimlanes on, a column (e.g. "To Do") reads as one lane with one
+    heading instead of the heading repeating in every swimlane; the heading
+    stays visible while scrolling a long board.
+  - AC: each column shows exactly one header regardless of swimlane count;
+    swimlanes appear as horizontal bands sharing the same columns; column
+    headers (and ideally swimlane labels) stay pinned when the board scrolls;
+    dragging cards between column×swimlane cells still works; dragging column
+    headers to reorder still works.
+  - Size: L
+  - Notes: today `board.js` renders a separate `.columns` row per swimlane, so
+    headers repeat. Likely a move to a columns×swimlanes grid with
+    `position: sticky` headers; re-check the per-cell SortableJS drop targets. A
+    layout change is acceptable per the request.
+
+- [ ] **Persist drag moves back to the card's fields**
+  - Value: moving a card to a new column/swimlane updates the underlying data,
+    so exports reflect both column and swimlane changes (today only the column
+    round-trips; swimlane moves are lost on export).
+  - AC: dragging a card sets `fields[columnField]` (and `fields[swimlaneField]`
+    when swimlanes are on) to the new value; `(no value)` maps back to empty; an
+    exported CSV reflects the moved column and swimlane; covered by store/csv
+    tests.
+  - Size: M
+  - Notes: `moveCard` currently updates only the derived `column`/`swimlane`.
+    Keep the `(no value)` → '' mapping consistent with `exportCsv`; once fields
+    are updated on move, `exportCsv`'s column write-back becomes redundant (fine
+    to simplify).
 
 ## Later
 
