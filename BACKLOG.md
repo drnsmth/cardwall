@@ -15,7 +15,7 @@ Status: `[ ]` todo · `[~]` in progress · `[x]` done.
 
 ## Now
 
-- [ ] **Import from the empty state**
+- [x] **Import from the empty state**
   - Value: a first-time user with a blank board understands what the app is for
     and can start importing without hunting for the toolbar control.
   - AC: the "No cards yet" view briefly explains what Cardwall does (offline,

@@ -1,6 +1,7 @@
 import Sortable from 'sortablejs';
 import { effect } from '@preact/signals';
 import { cards, config, moveCard, reorderColumns } from './store.js';
+import { importFile } from './import.js';
 import { openCardEditor } from './ui/card-edit.js';
 
 /** @typedef {import('./store.js').Card} Card */
@@ -193,10 +194,29 @@ function emptyState() {
   const el = document.createElement('div');
   el.className = 'empty-state';
   el.innerHTML = `
-    <h2>No cards yet</h2>
-    <p>Import a CSV exported from Jira to build your card wall.
-       Everything stays in your browser — nothing is uploaded.</p>
+    <h2>Welcome to Cardwall</h2>
+    <p>A browser-only card wall for offline planning and workshops. Import a CSV
+       exported from Jira, rearrange cards into columns and swimlanes, edit
+       fields, then export a CSV again. Everything stays in your browser —
+       your data is never uploaded.</p>
+    <p class="how">To start: export your issues from Jira to CSV, then import
+       the file here.</p>
+    <label class="btn import-cta">
+      Import CSV
+      <input type="file" accept=".csv,text/csv" hidden />
+    </label>
   `;
+
+  const input = /** @type {HTMLInputElement} */ (
+    el.querySelector('input[type=file]')
+  );
+  input.addEventListener('change', async () => {
+    const file = input.files?.[0];
+    if (!file) return;
+    await importFile(file);
+    input.value = '';
+  });
+
   return el;
 }
 

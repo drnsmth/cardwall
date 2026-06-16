@@ -1,6 +1,7 @@
 import { html, render } from 'htm/preact';
-import { cards, config, loadCards, syncColumns, reset } from '../store.js';
-import { importCsv, exportCsv, downloadText } from '../csv.js';
+import { cards, config, syncColumns, reset } from '../store.js';
+import { exportCsv, downloadText } from '../csv.js';
+import { importFile } from '../import.js';
 
 function Toolbar() {
   const cfg = config.value;
@@ -11,8 +12,7 @@ function Toolbar() {
     const input = /** @type {HTMLInputElement} */ (e.target);
     const file = input.files?.[0];
     if (!file) return;
-    const { cards: parsed, headers } = await importCsv(file);
-    loadCards(parsed, headers);
+    await importFile(file);
     input.value = ''; // allow re-importing the same file
   };
 

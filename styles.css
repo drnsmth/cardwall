@@ -255,3 +255,19 @@ body {
 .empty-state h2 {
   color: var(--text);
 }
+.empty-state .how {
+  font-size: 13px;
+}
+.empty-state .import-cta {
+  display: inline-block;
+  margin-top: 8px;
+  font-size: 13px;
+  padding: 8px 14px;
+  border-radius: 4px;
+  background: var(--accent);
+  color: #fff;
+  cursor: pointer;
+}
+.empty-state .import-cta:hover {
+  filter: brightness(1.06);
+}
