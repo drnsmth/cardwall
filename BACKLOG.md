@@ -95,6 +95,31 @@ Status: `[ ]` todo · `[~]` in progress · `[x]` done.
     clearing it restores everything; column counts reflect the filtered view.
   - Size: M
 
+- [ ] **Add a card**
+  - Value: capture work that isn't in the imported CSV without round-tripping
+    through Jira — e.g. a new idea raised mid-workshop.
+  - AC: an add control creates a new card that appears on the board in a sensible
+    place (default to the first column, or the column/lane where add was
+    invoked); the card is editable, persists across reload, and is included in
+    the CSV export alongside imported cards.
+  - Size: M
+  - Notes: cards today come only from CSV import. Add a `addCard` store action
+    that seeds `fields` (at least the column field's value, blank elsewhere),
+    derives `column`/`swimlane` (reuse `deriveColumn`/`deriveSwimlane`), and
+    re-syncs columns. New cards have no Jira key, so generate a stable id (the
+    `row-<n>` fallback in `csv.js` is the existing precedent). Consider reusing
+    the card-edit modal in a "new card" mode rather than a second form.
+
+- [ ] **Delete a card**
+  - Value: drop cards that are done-and-gone or were added by mistake.
+  - AC: a delete control (with a confirm, like Reset) removes the card from the
+    board and from storage; the export no longer includes it; if it was the last
+    card in a column, the column updates.
+  - Size: S
+  - Notes: add a `deleteCard(id)` store action and re-sync columns so an emptied
+    column drops out. Natural home for the control is the card-edit modal (a
+    Delete button); keep the confirm consistent with the Reset story.
+
 - [x] **Single, sticky column headers across swimlanes**
   - Value: with swimlanes on, a column (e.g. "To Do") reads as one lane with one
     heading instead of the heading repeating in every swimlane; the heading
