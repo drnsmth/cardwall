@@ -1,7 +1,7 @@
-Issue key,Issue Type,Summary,Status,Assignee,Priority,Story Points
-PROJ-101,Story,Allow CSV import from Jira,To Do,Alice,High,5
-PROJ-102,Bug,Cards lose colour on refresh,In Progress,Bob,Medium,2
-PROJ-103,Story,Drag cards between columns,In Progress,Alice,High,8
-PROJ-104,Task,Export board back to CSV,To Do,Carol,Medium,3
-PROJ-105,Story,Configurable swimlanes,Done,Bob,Low,5
-PROJ-106,Bug,"Summary with comma, and ""quotes"" inside",To Do,Carol,High,1
+Issue key,Issue Type,Summary,Status,Assignee,Priority,Story Points,Sprint
+PROJ-101,Story,Allow CSV import from Jira,To Do,Alice,High,5,Sprint 2
+PROJ-102,Bug,Cards lose colour on refresh,In Progress,Bob,Medium,2,Sprint 1
+PROJ-103,Story,Drag cards between columns,In Progress,Alice,High,8,Sprint 10
+PROJ-104,Task,Export board back to CSV,To Do,Carol,Medium,3,Sprint 2
+PROJ-105,Story,Configurable swimlanes,Done,Bob,Low,5,Sprint 1
+PROJ-106,Bug,"Summary with comma, and ""quotes"" inside",To Do,Carol,High,1,

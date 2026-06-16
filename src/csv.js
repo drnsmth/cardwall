@@ -34,9 +34,15 @@ export async function importCsv(file) {
   return parseCsvText(text);
 }
 
-/** Jira Cloud uses "Issue key"; on-prem sometimes "Key". */
+/**
+ * Jira Cloud uses "Issue key"; on-prem sometimes "Key".
+ * @param {string[]} headers
+ * @returns {string|null}
+ */
 function pickKeyField(headers) {
-  return ['Issue key', 'Key', 'Issue Key'].find((h) => headers.includes(h)) || null;
+  return (
+    ['Issue key', 'Key', 'Issue Key'].find((h) => headers.includes(h)) || null
+  );
 }
 
 /**
@@ -54,6 +60,7 @@ export function exportCsv(cards, config) {
     : Array.from(new Set(cards.flatMap((c) => Object.keys(c.fields))));
 
   const rows = cards.map((c) => {
+    /** @type {Object<string,string>} */
     const out = {};
     for (const h of headers) out[h] = c.fields[h] ?? '';
     // Reflect the card's current position back into the source field.
@@ -66,7 +73,12 @@ export function exportCsv(cards, config) {
   return Papa.unparse({ fields: headers, data: rows });
 }
 
-/** Trigger a browser download of text content. */
+/**
+ * Trigger a browser download of text content.
+ * @param {string} filename
+ * @param {string} text
+ * @param {string} [mime]
+ */
 export function downloadText(filename, text, mime = 'text/csv') {
   const blob = new Blob([text], { type: `${mime};charset=utf-8;` });
   const url = URL.createObjectURL(blob);

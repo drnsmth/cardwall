@@ -21,17 +21,17 @@ Import `sample-jira.csv` to try it out.
 
 - **No build pipeline.** Libraries load as native ES modules from a CDN via the
   import map in `index.html`. There is nothing to compile or bundle.
-- **No GitHub Actions.** Push to `main` and enable GitHub Pages → *Deploy from a
-  branch* → `main` / root. The pushed files are the site.
+- **No GitHub Actions.** Push to `main` and enable GitHub Pages → _Deploy from a
+  branch_ → `main` / root. The pushed files are the site.
 - **Types without a build.** Code is JavaScript with JSDoc annotations,
   type-checked in the editor via `jsconfig.json` (`tsc --noEmit`). No emit step.
 
 ## Libraries
 
-| Concern | Library |
-|---------|---------|
-| CSV parse/generate | PapaParse |
-| Drag & drop | SortableJS |
+| Concern                    | Library                        |
+| -------------------------- | ------------------------------ |
+| CSV parse/generate         | PapaParse                      |
+| Drag & drop                | SortableJS                     |
 | UI chrome (toolbar, modal) | Preact + htm + @preact/signals |
 
 ## Layout
@@ -49,7 +49,7 @@ src/ui/card-edit.js  double-click card editor modal (Preact)
 ## Deploy to GitHub Pages
 
 1. Push this repo to GitHub.
-2. Settings → Pages → *Deploy from a branch* → `main`, folder `/ (root)`.
+2. Settings → Pages → _Deploy from a branch_ → `main`, folder `/ (root)`.
 3. Visit `https://<user>.github.io/<repo>/`.
 
 All asset paths are relative (`./…`) so it works under the repo subpath.

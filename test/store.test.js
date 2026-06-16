@@ -7,6 +7,7 @@ import {
   moveCard,
   updateCard,
   syncColumns,
+  reorderColumns,
   distinctValues,
 } from '../src/store.js';
 
@@ -14,9 +15,39 @@ const HEADERS = ['Issue key', 'Summary', 'Status', 'Assignee'];
 
 function fixture() {
   return [
-    { id: 'A-1', fields: { 'Issue key': 'A-1', Summary: 'One', Status: 'To Do', Assignee: 'Alice' }, column: '', swimlane: '' },
-    { id: 'A-2', fields: { 'Issue key': 'A-2', Summary: 'Two', Status: 'Done', Assignee: 'Bob' }, column: '', swimlane: '' },
-    { id: 'A-3', fields: { 'Issue key': 'A-3', Summary: 'Three', Status: 'To Do', Assignee: 'Alice' }, column: '', swimlane: '' },
+    {
+      id: 'A-1',
+      fields: {
+        'Issue key': 'A-1',
+        Summary: 'One',
+        Status: 'To Do',
+        Assignee: 'Alice',
+      },
+      column: '',
+      swimlane: '',
+    },
+    {
+      id: 'A-2',
+      fields: {
+        'Issue key': 'A-2',
+        Summary: 'Two',
+        Status: 'Done',
+        Assignee: 'Bob',
+      },
+      column: '',
+      swimlane: '',
+    },
+    {
+      id: 'A-3',
+      fields: {
+        'Issue key': 'A-3',
+        Summary: 'Three',
+        Status: 'To Do',
+        Assignee: 'Alice',
+      },
+      column: '',
+      swimlane: '',
+    },
   ];
 }
 
@@ -33,17 +64,59 @@ beforeEach(() => {
 });
 
 test('loadCards seeds each card column from the column field', () => {
-  assert.deepEqual(cards.value.map((c) => c.column), ['To Do', 'Done', 'To Do']);
+  assert.deepEqual(
+    cards.value.map((c) => c.column),
+    ['To Do', 'Done', 'To Do'],
+  );
 });
 
-test('loadCards derives columns in first-seen order', () => {
+test('loadCards keeps textual column values in first-seen (workflow) order', () => {
+  // Status has no numbers, so smart ordering preserves CSV/workflow order
+  // rather than alphabetising (which would give Done before To Do).
   assert.deepEqual(config.value.columns, ['To Do', 'Done']);
+});
+
+/** Load a board whose cards carry the given Sprint values, grouped by Sprint. */
+function sprintBoard(...sprints) {
+  loadCards(
+    sprints.map((sprint, i) => ({
+      id: `S-${i}`,
+      fields: { 'Issue key': `S-${i}`, Sprint: sprint },
+      column: '',
+      swimlane: '',
+    })),
+    ['Issue key', 'Sprint'],
+  );
+  config.value = { ...config.value, columnField: 'Sprint' };
+  syncColumns();
+}
+
+test('syncColumns sorts numeric-suffixed values naturally (Sprint 2 before Sprint 10)', () => {
+  sprintBoard('Sprint 2', 'Sprint 10', 'Sprint 1');
+  assert.deepEqual(config.value.columns, ['Sprint 1', 'Sprint 2', 'Sprint 10']);
+});
+
+test('syncColumns parks blank-valued cards in a trailing (no value) column', () => {
+  sprintBoard('Sprint 1', '');
+  assert.deepEqual(config.value.columns, ['Sprint 1', '(no value)']);
+});
+
+test('reorderColumns applies a user-chosen column order', () => {
+  reorderColumns(['Done', 'To Do']);
+  assert.deepEqual(config.value.columns, ['Done', 'To Do']);
 });
 
 test('loadCards falls back to first header when Status is absent', () => {
   loadCards(
-    [{ id: 'X', fields: { Name: 'n', Phase: 'Backlog' }, column: '', swimlane: '' }],
-    ['Name', 'Phase']
+    [
+      {
+        id: 'X',
+        fields: { Name: 'n', Phase: 'Backlog' },
+        column: '',
+        swimlane: '',
+      },
+    ],
+    ['Name', 'Phase'],
   );
   assert.equal(config.value.columnField, 'Name');
   assert.equal(cards.value[0].column, 'n');
@@ -83,15 +156,25 @@ test('distinctValues returns first-seen unique values', () => {
 
 test('syncColumns recomputes columns after the column field changes', () => {
   config.value = { ...config.value, columnField: 'Assignee' };
-  cards.value = cards.value.map((c) => ({ ...c, column: c.fields['Assignee'] }));
+  cards.value = cards.value.map((c) => ({
+    ...c,
+    column: c.fields['Assignee'],
+  }));
   syncColumns();
   assert.deepEqual(config.value.columns, ['Alice', 'Bob']);
 });
 
 test('syncColumns yields a placeholder when the field is empty everywhere', () => {
   loadCards(
-    [{ id: 'E', fields: { 'Issue key': 'E', Status: '' }, column: '', swimlane: '' }],
-    ['Issue key', 'Status']
+    [
+      {
+        id: 'E',
+        fields: { 'Issue key': 'E', Status: '' },
+        column: '',
+        swimlane: '',
+      },
+    ],
+    ['Issue key', 'Status'],
   );
   assert.deepEqual(config.value.columns, ['(no value)']);
   assert.equal(cards.value[0].column, '(no value)');
@@ -100,5 +183,8 @@ test('syncColumns yields a placeholder when the field is empty everywhere', () =
 test('swimlane field assigns swimlane values on load', () => {
   config.value = { ...config.value, swimlaneField: 'Assignee' };
   loadCards(fixture(), HEADERS);
-  assert.deepEqual(cards.value.map((c) => c.swimlane), ['Alice', 'Bob', 'Alice']);
+  assert.deepEqual(
+    cards.value.map((c) => c.swimlane),
+    ['Alice', 'Bob', 'Alice'],
+  );
 });

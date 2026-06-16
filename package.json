@@ -6,12 +6,28 @@
   "private": true,
   "scripts": {
     "test": "node --test",
-    "typecheck": "tsc -p jsconfig.json"
+    "typecheck": "tsc -p jsconfig.json",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write \"**/*.{js,css,html,json,md}\"",
+    "format:check": "prettier --check \"**/*.{js,css,html,json,md}\"",
+    "dupes": "jscpd src app.js test",
+    "check": "npm run format:check && npm run lint && npm run typecheck && npm run dupes && npm test"
   },
   "devDependencies": {
+    "@eslint/js": "^9.39.4",
     "@preact/signals": "2.0.1",
+    "@types/papaparse": "^5.5.2",
+    "@types/sortablejs": "^1.15.9",
+    "eslint": "^9.39.4",
+    "eslint-config-prettier": "^9.1.2",
+    "globals": "^17.6.0",
     "htm": "3.1.1",
+    "jscpd": "^4.2.5",
     "papaparse": "5.4.1",
-    "preact": "10.26.4"
+    "preact": "10.26.4",
+    "prettier": "^3.8.4",
+    "sortablejs": "^1.15.7",
+    "typescript": "^5.9.3"
   }
 }

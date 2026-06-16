@@ -32,8 +32,7 @@ export const config = signal({
 });
 
 // Guarded so the module is safe to import outside a browser (tests, SSR).
-const storage =
-  typeof localStorage !== 'undefined' ? localStorage : null;
+const storage = typeof localStorage !== 'undefined' ? localStorage : null;
 
 // ---- Persistence: mirror state to localStorage on every change ----
 let restoring = true;
@@ -48,7 +47,10 @@ effect(() => {
 });
 
 export function restore() {
-  if (!storage) { restoring = false; return; }
+  if (!storage) {
+    restoring = false;
+    return;
+  }
   try {
     const raw = storage.getItem(STORAGE_KEY);
     if (raw) {
@@ -63,38 +65,89 @@ export function restore() {
   }
 }
 
-/** Distinct values of a field across all cards, in first-seen order. */
+/**
+ * Distinct values of a field across all cards, in first-seen order.
+ * @param {string} field
+ * @returns {string[]}
+ */
 export function distinctValues(field) {
   const seen = new Set();
+  /** @type {string[]} */
   const out = [];
   for (const c of cards.value) {
     const v = (c.fields[field] ?? '').trim();
-    if (!seen.has(v)) { seen.add(v); out.push(v); }
+    if (!seen.has(v)) {
+      seen.add(v);
+      out.push(v);
+    }
   }
   return out;
 }
 
+/**
+ * Order column values for display. Smart default: if any value contains a
+ * number (e.g. "Sprint 2", "Sprint 10") sort naturally so 2 precedes 10;
+ * otherwise keep first-seen order so workflow fields like Status stay in
+ * their CSV order rather than alphabetising. Cards with a blank value collapse
+ * into a single "(no value)" column parked at the end (backlog).
+ * @param {string[]} values  Distinct field values in first-seen order.
+ * @returns {string[]}
+ */
+function orderColumnValues(values) {
+  const named = values.filter((v) => v !== '');
+  const ordered = named.some((v) => /\d/.test(v))
+    ? [...named].sort((a, b) =>
+        a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' }),
+      )
+    : named; // first-seen order
+  return values.includes('') ? [...ordered, '(no value)'] : ordered;
+}
+
 /** Recompute the column list from the current cards + columnField. */
 export function syncColumns() {
-  const cols = distinctValues(config.value.columnField).filter((v) => v !== '');
-  config.value = { ...config.value, columns: cols.length ? cols : ['(no value)'] };
+  const cols = orderColumnValues(distinctValues(config.value.columnField));
+  config.value = {
+    ...config.value,
+    columns: cols.length ? cols : ['(no value)'],
+  };
 }
 
-/** Move a card to a new column/swimlane (called from drag-and-drop). */
+/**
+ * Apply a user-chosen column order (from dragging column headers).
+ * @param {string[]} orderedValues
+ */
+export function reorderColumns(orderedValues) {
+  config.value = { ...config.value, columns: orderedValues };
+}
+
+/**
+ * Move a card to a new column/swimlane (called from drag-and-drop).
+ * @param {string} id
+ * @param {string} column
+ * @param {string} swimlane
+ */
 export function moveCard(id, column, swimlane) {
   cards.value = cards.value.map((c) =>
-    c.id === id ? { ...c, column, swimlane } : c
+    c.id === id ? { ...c, column, swimlane } : c,
   );
 }
 
-/** Patch a single card's fields (called from the edit modal). */
+/**
+ * Patch a single card's fields (called from the edit modal).
+ * @param {string} id
+ * @param {Object<string,string>} patch
+ */
 export function updateCard(id, patch) {
   cards.value = cards.value.map((c) =>
-    c.id === id ? { ...c, fields: { ...c.fields, ...patch } } : c
+    c.id === id ? { ...c, fields: { ...c.fields, ...patch } } : c,
   );
 }
 
-/** Replace the whole board after a CSV import. */
+/**
+ * Replace the whole board after a CSV import.
+ * @param {Card[]} newCards
+ * @param {string[]} headers
+ */
 export function loadCards(newCards, headers) {
   cards.value = newCards;
   config.value = { ...config.value, headers };
