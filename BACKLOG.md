@@ -76,7 +76,7 @@ Status: `[ ]` todo · `[~]` in progress · `[x]` done.
     clearing it restores everything; column counts reflect the filtered view.
   - Size: M
 
-- [ ] **Single, sticky column headers across swimlanes**
+- [x] **Single, sticky column headers across swimlanes**
   - Value: with swimlanes on, a column (e.g. "To Do") reads as one lane with one
     heading instead of the heading repeating in every swimlane; the heading
     stays visible while scrolling a long board.

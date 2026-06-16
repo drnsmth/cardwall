@@ -24,6 +24,9 @@ export function mountBoard(root) {
 }
 
 /**
+ * Render a single sticky header row of columns, then one horizontal band per
+ * swimlane. Columns line up across bands because the header row and every
+ * band's cells share the same fixed column width and gap.
  * @param {HTMLElement} root
  * @param {Card[]} cardList
  * @param {Config} cfg
@@ -41,88 +44,104 @@ function render(root, cardList, cfg) {
     ? distinct(cardList.map((c) => c.swimlane))
     : [''];
 
+  root.append(renderHeaderRow(cardList, cfg));
+
+  const lanes = document.createElement('div');
+  lanes.className = 'lanes';
   for (const lane of swimlanes) {
-    const laneEl = document.createElement('section');
-    laneEl.className = 'swimlane';
-
-    if (cfg.swimlaneField) {
-      const title = document.createElement('div');
-      title.className = 'swimlane-title';
-      title.textContent = lane || '(none)';
-      laneEl.append(title);
-    }
-
-    const columnsEl = document.createElement('div');
-    columnsEl_setup(columnsEl);
-
-    for (const col of cfg.columns) {
-      const colEl = renderColumn(col, lane, cardList, cfg);
-      columnsEl.append(colEl);
-    }
-    makeColumnsSortable(columnsEl);
-    laneEl.append(columnsEl);
-    root.append(laneEl);
+    lanes.append(renderLane(lane, cardList, cfg));
   }
+  root.append(lanes);
 }
 
 /**
- * Let the user drag column headers to override the default order. Grabbing is
- * limited to the header (the card lists own their own drag). No shared group,
- * so columns only re-sort within their lane; the resulting order is applied
- * globally via the store and persists through the config→localStorage effect.
- * @param {HTMLElement} columnsEl
+ * The single, sticky row of column headers. Each header shows the total card
+ * count for that column across all swimlanes, and doubles as the drag handle
+ * for reordering columns.
+ * @param {Card[]} cardList
+ * @param {Config} cfg
+ * @returns {HTMLElement}
  */
-function makeColumnsSortable(columnsEl) {
-  const s = Sortable.create(columnsEl, {
-    handle: '.column-header',
-    draggable: '.column',
+function renderHeaderRow(cardList, cfg) {
+  const row = document.createElement('div');
+  row.className = 'column-headers';
+
+  for (const col of cfg.columns) {
+    const count = cardList.filter((c) => c.column === col).length;
+    const header = document.createElement('div');
+    header.className = 'column-header';
+    header.dataset.col = col;
+    header.innerHTML = `<span>${escapeHtml(col)}</span><span>${count}</span>`;
+    row.append(header);
+  }
+
+  // Drag headers to override column order; persisted globally via the store.
+  const s = Sortable.create(row, {
+    draggable: '.column-header',
     animation: 120,
     onEnd: () => {
-      const order = [...columnsEl.querySelectorAll(':scope > .column')].map(
+      const order = [...row.querySelectorAll(':scope > .column-header')].map(
         (el) => /** @type {HTMLElement} */ (el).dataset.col ?? '',
       );
       reorderColumns(order);
     },
   });
   sortables.push(s);
-}
 
-/** @param {HTMLElement} el */
-function columnsEl_setup(el) {
-  el.className = 'columns';
+  return row;
 }
 
 /**
+ * One swimlane band: an optional title plus a row of column cells aligned to
+ * the header row.
+ * @param {string} lane
+ * @param {Card[]} cardList
+ * @param {Config} cfg
+ * @returns {HTMLElement}
+ */
+function renderLane(lane, cardList, cfg) {
+  const laneEl = document.createElement('section');
+  laneEl.className = 'swimlane';
+
+  if (cfg.swimlaneField) {
+    const title = document.createElement('div');
+    title.className = 'swimlane-title';
+    title.textContent = lane || '(none)';
+    laneEl.append(title);
+  }
+
+  const cols = document.createElement('div');
+  cols.className = 'lane-columns';
+  for (const col of cfg.columns) {
+    cols.append(renderCell(col, lane, cardList, cfg));
+  }
+  laneEl.append(cols);
+
+  return laneEl;
+}
+
+/**
+ * A single column×swimlane cell: a drop target holding the cards for that
+ * column within this lane.
  * @param {string} col
  * @param {string} lane
  * @param {Card[]} cardList
  * @param {Config} cfg
  * @returns {HTMLElement}
  */
-function renderColumn(col, lane, cardList, cfg) {
-  const colEl = document.createElement('div');
-  colEl.className = 'column';
-  colEl.dataset.col = col;
+function renderCell(col, lane, cardList, cfg) {
+  const cell = document.createElement('div');
+  cell.className = 'cards';
+  cell.dataset.column = col;
+  cell.dataset.swimlane = lane;
 
-  const inCol = cardList.filter(
+  const inCell = cardList.filter(
     (c) => c.column === col && (!cfg.swimlaneField || c.swimlane === lane),
   );
+  for (const card of inCell) cell.append(renderCard(card, cfg));
 
-  const header = document.createElement('div');
-  header.className = 'column-header';
-  header.innerHTML = `<span>${escapeHtml(col)}</span><span>${inCol.length}</span>`;
-  colEl.append(header);
-
-  const cardsEl = document.createElement('div');
-  cardsEl.className = 'cards';
-  cardsEl.dataset.column = col;
-  cardsEl.dataset.swimlane = lane;
-
-  for (const card of inCol) cardsEl.append(renderCard(card, cfg));
-  colEl.append(cardsEl);
-
-  // Drag-and-drop between every .cards list (shared group).
-  const s = Sortable.create(cardsEl, {
+  // Drag-and-drop between every cell (shared group spans all columns/lanes).
+  const s = Sortable.create(cell, {
     group: 'cardwall',
     animation: 120,
     ghostClass: 'sortable-ghost',
@@ -135,7 +154,7 @@ function renderColumn(col, lane, cardList, cfg) {
   });
   sortables.push(s);
 
-  return colEl;
+  return cell;
 }
 
 /**

@@ -79,12 +79,46 @@ body {
   font-size: 12px;
 }
 
-/* ---- Board: horizontal scroll, never wrap ---- */
+/* ---- Board: a sticky header row above stacked swimlane bands ----
+   The header row and every lane's cells share --col-width and --gap, so the
+   single header for each column lines up over all of its swimlane cells. The
+   board scrolls in both directions; headers stay pinned to the top. */
 .board {
   flex: 1 1 auto;
   overflow-x: auto;
   overflow-y: auto;
   padding: var(--gap);
+}
+.column-headers {
+  display: flex;
+  gap: var(--gap);
+  width: max-content;
+  /* Pin to the top on vertical scroll; still pans on horizontal scroll. */
+  position: sticky;
+  top: calc(-1 * var(--gap));
+  z-index: 5;
+  background: var(--bg);
+  padding: var(--gap) 0 8px;
+  margin-top: calc(-1 * var(--gap));
+}
+.column-header {
+  flex: 0 0 var(--col-width);
+  width: var(--col-width);
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  background: var(--col-bg);
+  border-radius: 6px;
+  padding: 8px 10px;
+  cursor: grab;
+  user-select: none;
+}
+.column-header:active {
+  cursor: grabbing;
 }
 .swimlane {
   margin-bottom: var(--gap);
@@ -95,45 +129,27 @@ body {
   font-size: 13px;
   font-weight: 600;
   color: var(--muted);
-  padding: 4px 2px;
+  padding: 8px 2px 4px;
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
-.columns {
+.lane-columns {
   display: flex;
   gap: var(--gap);
   align-items: flex-start;
   /* width grows with content so the board scrolls horizontally */
   width: max-content;
 }
-.column {
+.cards {
   flex: 0 0 var(--col-width);
   width: var(--col-width);
-  background: var(--col-bg);
-  border-radius: 6px;
-  padding: 8px;
-  max-height: 100%;
-}
-.column-header {
-  display: flex;
-  justify-content: space-between;
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--muted);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  padding: 2px 4px 8px;
-  cursor: grab;
-  user-select: none;
-}
-.column-header:active {
-  cursor: grabbing;
-}
-.cards {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  min-height: 24px;
+  min-height: 48px;
+  background: var(--col-bg);
+  border-radius: 6px;
+  padding: 8px;
 }
 
 /* ---- Card ---- */
