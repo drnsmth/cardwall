@@ -51,6 +51,12 @@ function Toolbar() {
     }));
   };
 
+  /** @param {Event} e */
+  const onColourField = (e) => {
+    const field = /** @type {HTMLSelectElement} */ (e.target).value;
+    config.value = { ...config.value, colourField: field };
+  };
+
   return html`
     <div class="toolbar">
       <h1>Cardwall</h1>
@@ -80,6 +86,17 @@ function Toolbar() {
           ${cfg.headers.map(
             (h) =>
               html`<option value=${h} selected=${h === cfg.swimlaneField}>
+                ${h}
+              </option>`,
+          )}
+        </select>
+
+        <span class="muted">Colour by</span>
+        <select onChange=${onColourField} value=${cfg.colourField}>
+          <option value="">(none)</option>
+          ${cfg.headers.map(
+            (h) =>
+              html`<option value=${h} selected=${h === cfg.colourField}>
                 ${h}
               </option>`,
           )}

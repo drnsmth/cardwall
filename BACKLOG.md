@@ -126,7 +126,7 @@ Status: `[ ]` todo · `[~]` in progress · `[x]` done.
 
 ## Later
 
-- [ ] **Card colour by a field**
+- [x] **Card colour by a field**
   - Value: visually distinguish issue types / priorities.
   - AC: cards are tinted by a chosen field's value; the mapping persists across
     reload (no colour loss on refresh).

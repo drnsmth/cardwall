@@ -114,6 +114,7 @@ test('reset empties the board and restores default config', () => {
   assert.deepEqual(config.value, {
     columnField: 'Status',
     swimlaneField: '',
+    colourField: '',
     columns: [],
     displayFields: ['Issue key', 'Summary'],
     headers: [],

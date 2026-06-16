@@ -12,6 +12,7 @@ import { signal, effect } from '@preact/signals';
  * @typedef {Object} Config
  * @property {string} columnField     Field whose values become columns (e.g. "Status")
  * @property {string} swimlaneField   Field whose values become swimlanes, or '' for none
+ * @property {string} colourField     Field whose value tints each card, or '' for none
  * @property {string[]} columns       Ordered list of column values to display
  * @property {string[]} displayFields Fields shown on the card face
  * @property {string[]} headers       All column headers seen in the imported CSV
@@ -24,6 +25,7 @@ function defaultConfig() {
   return {
     columnField: 'Status',
     swimlaneField: '',
+    colourField: '',
     columns: [],
     displayFields: ['Issue key', 'Summary'],
     headers: [],

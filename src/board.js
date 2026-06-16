@@ -2,6 +2,7 @@ import Sortable from 'sortablejs';
 import { effect } from '@preact/signals';
 import { cards, config, moveCard, reorderColumns } from './store.js';
 import { importFile } from './import.js';
+import { colourMap } from './colour.js';
 import { openCardEditor } from './ui/card-edit.js';
 
 /** @typedef {import('./store.js').Card} Card */
@@ -9,6 +10,13 @@ import { openCardEditor } from './ui/card-edit.js';
 
 /** @type {Sortable[]} */
 const sortables = [];
+
+/**
+ * Value→colour map for the current render pass (null when colouring is off).
+ * Set at the top of render() and read by renderCard.
+ * @type {Map<string, string> | null}
+ */
+let cardColours = null;
 
 /**
  * Render the board imperatively (Preact owns the chrome; Sortable owns the
@@ -34,6 +42,9 @@ export function mountBoard(root) {
  */
 function render(root, cardList, cfg) {
   destroySortables();
+  cardColours = cfg.colourField
+    ? colourMap(cardList.map((c) => c.fields[cfg.colourField] ?? ''))
+    : null;
   root.replaceChildren();
 
   if (!cardList.length) {
@@ -167,6 +178,10 @@ function renderCard(card, cfg) {
   const el = document.createElement('article');
   el.className = 'card';
   el.dataset.id = card.id;
+
+  // Tint the card's accent by the chosen field's value (stable per value).
+  const colour = cardColours?.get((card.fields[cfg.colourField] ?? '').trim());
+  if (colour) el.style.setProperty('--card-color', colour);
 
   const key = card.fields['Issue key'] || card.fields['Key'] || '';
   const summary = card.fields['Summary'] || '';
