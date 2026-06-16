@@ -82,3 +82,7 @@ e2e/                   browser end-to-end tests
 
 Only `docs/` is published. All asset paths are relative (`./…`) so it works under
 the repo subpath.
+
+## License
+
+[MIT](LICENSE) © Darren Smith.

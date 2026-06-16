@@ -4,6 +4,7 @@
   "description": "Browser-only Jira card wall for offline planning",
   "type": "module",
   "private": true,
+  "license": "MIT",
   "scripts": {
     "prepare": "git config core.hooksPath .githooks || true",
     "test": "node --test 'test/**/*.test.js'",
