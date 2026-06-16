@@ -21,13 +21,20 @@ Import `sample-jira.csv` to try it out.
 
 ```sh
 npm install      # dev tooling + configures the git pre-commit hook
-npm run check    # format + lint + types + duplication + tests (the full gate)
-npm test         # tests only
+npm run check    # format + lint + types + duplication + unit tests (the gate)
+npm test         # unit tests only
+npm run test:e2e # browser end-to-end tests (needs Chrome; see below)
 ```
 
 `npm install` points git at `.githooks` (via the `prepare` script), so a
 pre-commit hook runs `npm run check` and blocks commits that don't pass. Bypass
 once with `git commit --no-verify` if you must.
+
+End-to-end tests live in `e2e/` and drive the real app in headless Chrome,
+asserting on the DOM (not screenshots). They need Chrome installed — found via
+the `chrome` channel, or set `PUPPETEER_EXECUTABLE_PATH`. They're kept out of
+`npm run check` (slower, and need a browser + network for the CDN imports), so
+run `npm run test:e2e` when changing UI behaviour.
 
 ## How it works
 

@@ -6,7 +6,8 @@
   "private": true,
   "scripts": {
     "prepare": "git config core.hooksPath .githooks || true",
-    "test": "node --test",
+    "test": "node --test 'test/**/*.test.js'",
+    "test:e2e": "node --test 'e2e/**/*.test.js'",
     "typecheck": "tsc -p jsconfig.json",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
@@ -28,6 +29,7 @@
     "papaparse": "5.4.1",
     "preact": "10.26.4",
     "prettier": "^3.8.4",
+    "puppeteer-core": "^25.1.0",
     "sortablejs": "^1.15.7",
     "typescript": "^5.9.3"
   }

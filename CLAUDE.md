@@ -5,9 +5,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Commands
 
 ```sh
-npm run check                  # run ALL gates: format + lint + types + dupes + tests
-npm test                       # run all tests (node --test)
-node --test test/csv.test.js   # run a single test file
+npm run check                  # gate: format + lint + types + dupes + UNIT tests
+npm test                       # unit tests (node --test, test/ only)
+node --test test/csv.test.js   # run a single unit test file
+npm run test:e2e               # browser end-to-end tests (e2e/, needs Chrome)
 npm run typecheck              # tsc on JSDoc types via jsconfig.json (no emit)
 npm run lint                   # eslint .            (lint:fix to auto-fix)
 npm run format                 # prettier --write    (format:check to verify only)
@@ -35,6 +36,7 @@ Apply this in practice here:
 - **Put logic in pure, testable cores.** The codebase already splits this way — `parseCsvText`/`exportCsv` are pure (no DOM/`File`), while `importCsv`/`downloadText` are thin browser wrappers. New behavior belongs in a pure function with `node --test` coverage; keep DOM/SortableJS/Preact glue as thin, hard-to-test edges.
 - **Drive store logic from tests too** — `src/store.js` imports safely under Node (no `localStorage`), so functions like `loadCards`, `moveCard`, `syncColumns`, `distinctValues` can be tested directly. Add tests alongside `test/csv.test.js` and `test/store.test.js`.
 - **Test behavior, not implementation** — assert on inputs/outputs (e.g. round-tripping CSV, sentinel `(no value)` handling), mirroring the existing tests, so refactors don't break the suite.
+- **Verify UI with e2e tests, not ad-hoc scripts or screenshots.** For DOM/rendering behaviour that unit tests can't reach (`board.js`, the Preact UI), add a committed test in `e2e/` that drives the app in headless Chrome and asserts on the **DOM and values** (`page.$eval`, `getComputedStyle`, element counts) — never by eyeballing a screenshot. The harness (`e2e/support/harness.js`) provides a static server, browser launcher, and `openBoard()` seeding helper. E2E is the slow top of the pyramid: keep coverage thin and run it via `npm run test:e2e` (it needs Chrome + network), separate from the fast pre-commit gate.
 - **Keep the gates green before any commit.** Run `npm run check` (format + lint + types + dupes + tests); never commit on red.
 
 XP values to keep front of mind: **simplicity** (do the simplest thing that passes — YAGNI; no speculative config/abstraction), **feedback** (small steps, run tests constantly), **communication** (intention-revealing names and the existing JSDoc types), and **courage to refactor** (the tests are the safety net that makes that safe).

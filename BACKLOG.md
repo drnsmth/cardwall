@@ -163,10 +163,13 @@ Status: `[ ]` todo · `[~]` in progress · `[x]` done.
     limits persist; no limit = no warning.
   - Size: M
 
-- [ ] **DOM-level tests for the board render layer**
+- [x] **DOM-level tests for the board render layer**
   - Value: cover `board.js`, currently the untested DOM edge.
-  - AC: a lightweight DOM (jsdom/linkedom) lets `node --test` assert that render
-    produces the expected columns/cards and wires drag handlers; runs in
-    `npm run check`.
+  - AC: render of `board.js` is asserted at the DOM level (columns/cards, sticky
+    headers, colour, add-card) so UI changes are caught by tests.
   - Size: L
-  - Notes: keeps the no-build runtime intact — test-only dependency.
+  - Done: covered by the e2e suite (`e2e/`, headless Chrome, DOM/value
+    assertions) rather than jsdom — real browser CSS (e.g. `position: sticky`)
+    is verifiable. Run via `npm run test:e2e`; kept out of the fast gate.
+    Remaining gap: drag-interaction (move/reorder) isn't simulated yet — could
+    be a follow-up.

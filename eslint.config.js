@@ -27,6 +27,12 @@ export default [
     languageOptions: { globals: { ...globals.node } },
   },
 
+  // E2E tests run under Node but also evaluate code in the browser context.
+  {
+    files: ['e2e/**/*.js'],
+    languageOptions: { globals: { ...globals.node, ...globals.browser } },
+  },
+
   // Turn off rules that conflict with Prettier (keep ESLint about correctness).
   prettier,
 ];
