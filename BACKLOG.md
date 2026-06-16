@@ -47,6 +47,25 @@ Status: `[ ]` todo · `[~]` in progress · `[x]` done.
 
 ## Next
 
+- [ ] **Reflect card edits in the board immediately**
+  - Value: editing a field that drives the layout (the column or swimlane
+    field — and later card colour) moves/recolours the card right away, without
+    switching the view away and back. E.g. changing a card's Sprint while
+    grouped by Sprint should move it to the matching column at once, creating
+    that column if the value is new.
+  - AC: after the card editor saves, if the patch touched `config.columnField`
+    the card's `column` is re-derived and `syncColumns()` runs (so it moves, and
+    a brand-new value gets its own column); if it touched `config.swimlaneField`
+    the `swimlane` is re-derived; the board re-renders with no manual view
+    toggle; edits to other fields don't reorder columns.
+  - Size: S
+  - Notes: `updateCard` patches `fields` only today — it never re-derives
+    `column`/`swimlane` or calls `syncColumns`, so the derived position goes
+    stale. Keep `(no value)` handling consistent. The inverse of "Persist drag
+    moves back to the card's fields" — together they keep `fields` and the
+    derived position in sync both ways. When the colour-by-field story lands,
+    the same trigger should refresh colour.
+
 - [ ] **Story-point totals per column**
   - Value: see capacity per column at a glance during planning.
   - AC: each column header shows the sum of a numeric field (default
