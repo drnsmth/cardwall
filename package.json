@@ -5,6 +5,7 @@
   "type": "module",
   "private": true,
   "scripts": {
+    "prepare": "git config core.hooksPath .githooks || true",
     "test": "node --test",
     "typecheck": "tsc -p jsconfig.json",
     "lint": "eslint .",

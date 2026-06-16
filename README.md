@@ -17,6 +17,18 @@ python3 -m http.server 8000
 
 Import `sample-jira.csv` to try it out.
 
+## Development
+
+```sh
+npm install      # dev tooling + configures the git pre-commit hook
+npm run check    # format + lint + types + duplication + tests (the full gate)
+npm test         # tests only
+```
+
+`npm install` points git at `.githooks` (via the `prepare` script), so a
+pre-commit hook runs `npm run check` and blocks commits that don't pass. Bypass
+once with `git commit --no-verify` if you must.
+
 ## How it works
 
 - **No build pipeline.** Libraries load as native ES modules from a CDN via the

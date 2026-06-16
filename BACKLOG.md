@@ -36,7 +36,7 @@ Status: `[ ]` todo · `[~]` in progress · `[x]` done.
   - Size: S
   - Notes: confirm before destroying data.
 
-- [ ] **Pre-commit hook running `npm run check`**
+- [x] **Pre-commit hook running `npm run check`**
   - Value: the quality gate runs automatically, so a red commit can't land.
   - AC: committing with a failing gate is blocked locally; a clean tree commits
     normally; setup works from a fresh `npm install`.

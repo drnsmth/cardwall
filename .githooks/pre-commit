@@ -1,0 +1,14 @@
+#!/bin/sh
+# Pre-commit quality gate: format + lint + types + duplication + tests.
+#
+# Wired via `git config core.hooksPath .githooks`, which the npm "prepare"
+# script sets automatically after `npm install`. No husky / extra dependency.
+# Bypass in a pinch with `git commit --no-verify`.
+
+echo "Running npm run check ..."
+if ! npm run check; then
+  echo
+  echo "✗ npm run check failed — commit aborted."
+  echo "  Fix the issues, or bypass with: git commit --no-verify"
+  exit 1
+fi
