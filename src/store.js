@@ -169,15 +169,23 @@ export function reorderColumns(orderedValues) {
 }
 
 /**
- * Move a card to a new column/swimlane (called from drag-and-drop).
+ * Move a card to a new column/swimlane (called from drag-and-drop), writing the
+ * new values back into the underlying fields so the change survives export. The
+ * "(no value)" column maps back to an empty field; the swimlane field is only
+ * written when swimlanes are on.
  * @param {string} id
  * @param {string} column
  * @param {string} swimlane
  */
 export function moveCard(id, column, swimlane) {
-  cards.value = cards.value.map((c) =>
-    c.id === id ? { ...c, column, swimlane } : c,
-  );
+  const { columnField, swimlaneField } = config.value;
+  cards.value = cards.value.map((c) => {
+    if (c.id !== id) return c;
+    const fields = { ...c.fields };
+    fields[columnField] = column === '(no value)' ? '' : column;
+    if (swimlaneField) fields[swimlaneField] = swimlane;
+    return { ...c, column, swimlane, fields };
+  });
 }
 
 /**

@@ -74,24 +74,31 @@ test('exportCsv writes the original headers in order', () => {
   );
 });
 
-test('exportCsv reflects a moved card back into the column field', () => {
+test('exportCsv reflects a moved card in both the column and swimlane fields', () => {
   const { cards, headers } = parseCsvText(SAMPLE);
+  // A drag that moved PROJ-1 to Done / Bob writes those into the fields
+  // (see moveCard); export then carries them through.
   const moved = cards.map((c) =>
     c.id === 'PROJ-1'
-      ? { ...c, column: 'Done' }
-      : { ...c, column: c.fields['Status'] },
+      ? {
+          ...c,
+          column: 'Done',
+          swimlane: 'Bob',
+          fields: { ...c.fields, Status: 'Done', Assignee: 'Bob' },
+        }
+      : c,
   );
   const config = {
     headers,
     columnField: 'Status',
-    swimlaneField: '',
+    swimlaneField: 'Assignee',
     columns: [],
     displayFields: [],
   };
   const out = exportCsv(moved, config);
-  const reparsed = parseCsvText(out);
-  const p1 = reparsed.cards.find((c) => c.id === 'PROJ-1');
+  const p1 = parseCsvText(out).cards.find((c) => c.id === 'PROJ-1');
   assert.equal(p1.fields['Status'], 'Done');
+  assert.equal(p1.fields['Assignee'], 'Bob');
 });
 
 test('parse → export round-trips an unchanged board', () => {

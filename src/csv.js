@@ -48,7 +48,8 @@ function pickKeyField(headers) {
 /**
  * Export the current board back to CSV. We write the original Jira columns so
  * the file can be re-opened or (for supported fields) re-imported into Jira.
- * The card's current column is written back into the columnField so moves persist.
+ * Column/swimlane moves are already reflected in each card's fields, so we
+ * simply write the fields out.
  *
  * @param {import('./store.js').Card[]} cards
  * @param {import('./store.js').Config} config
@@ -59,14 +60,12 @@ export function exportCsv(cards, config) {
     ? config.headers
     : Array.from(new Set(cards.flatMap((c) => Object.keys(c.fields))));
 
+  // Fields are the source of truth: moveCard/updateCard write column and
+  // swimlane changes back into them, so exporting the fields reflects moves.
   const rows = cards.map((c) => {
     /** @type {Object<string,string>} */
     const out = {};
     for (const h of headers) out[h] = c.fields[h] ?? '';
-    // Reflect the card's current position back into the source field.
-    if (config.columnField && headers.includes(config.columnField)) {
-      out[config.columnField] = c.column === '(no value)' ? '' : c.column;
-    }
     return out;
   });
 

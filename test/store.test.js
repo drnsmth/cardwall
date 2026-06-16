@@ -155,6 +155,33 @@ test('moveCard preserves card identity and fields', () => {
   assert.equal(c.fields['Summary'], 'One');
 });
 
+test('moveCard writes the new column value back into the column field', () => {
+  moveCard('A-1', 'Done', '');
+  const c = cards.value.find((x) => x.id === 'A-1');
+  assert.equal(c.fields['Status'], 'Done');
+});
+
+test('moveCard maps the (no value) column back to an empty field', () => {
+  moveCard('A-1', '(no value)', '');
+  const c = cards.value.find((x) => x.id === 'A-1');
+  assert.equal(c.fields['Status'], '');
+});
+
+test('moveCard writes the swimlane field when swimlanes are on', () => {
+  config.value = { ...config.value, swimlaneField: 'Assignee' };
+  moveCard('A-1', 'To Do', 'Bob');
+  const c = cards.value.find((x) => x.id === 'A-1');
+  assert.equal(c.swimlane, 'Bob');
+  assert.equal(c.fields['Assignee'], 'Bob');
+});
+
+test('moveCard leaves other fields untouched when swimlanes are off', () => {
+  moveCard('A-1', 'Done', '');
+  const c = cards.value.find((x) => x.id === 'A-1');
+  assert.equal(c.fields['Assignee'], 'Alice'); // not overwritten
+  assert.ok(!('' in c.fields)); // no stray empty-key field
+});
+
 test('updateCard patches fields without touching others', () => {
   updateCard('A-2', { Summary: 'Two (edited)' });
   const c = cards.value.find((x) => x.id === 'A-2');
@@ -191,13 +218,13 @@ test('updateCard re-derives the swimlane when the swimlane field changes', () =>
   assert.equal(c.swimlane, 'Zoe');
 });
 
-test('updateCard does not reset a dragged card when an unchanged field is re-submitted', () => {
-  // A-1 was dragged to Done, but its Status field still reads To Do.
+test('updateCard does not move a card when the column field is re-submitted unchanged', () => {
+  // Dragging to Done now also writes fields.Status = 'Done' (moveCard).
   moveCard('A-1', 'Done', '');
   // The editor re-submits Status with its existing value plus a real edit.
-  updateCard('A-1', { Status: 'To Do', Summary: 'Edited' });
+  updateCard('A-1', { Status: 'Done', Summary: 'Edited' });
   const c = cards.value.find((x) => x.id === 'A-1');
-  assert.equal(c.column, 'Done'); // position preserved, not clobbered
+  assert.equal(c.column, 'Done'); // unchanged value → stays put
   assert.equal(c.fields['Summary'], 'Edited');
 });
 

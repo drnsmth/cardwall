@@ -110,7 +110,7 @@ Status: `[ ]` todo · `[~]` in progress · `[x]` done.
     `position: sticky` headers; re-check the per-cell SortableJS drop targets. A
     layout change is acceptable per the request.
 
-- [ ] **Persist drag moves back to the card's fields**
+- [x] **Persist drag moves back to the card's fields**
   - Value: moving a card to a new column/swimlane updates the underlying data,
     so exports reflect both column and swimlane changes (today only the column
     round-trips; swimlane moves are lost on export).
