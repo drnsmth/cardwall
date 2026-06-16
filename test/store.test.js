@@ -9,6 +9,7 @@ import {
   syncColumns,
   reorderColumns,
   distinctValues,
+  reset,
 } from '../src/store.js';
 
 const HEADERS = ['Issue key', 'Summary', 'Status', 'Assignee'];
@@ -99,6 +100,24 @@ test('syncColumns sorts numeric-suffixed values naturally (Sprint 2 before Sprin
 test('syncColumns parks blank-valued cards in a trailing (no value) column', () => {
   sprintBoard('Sprint 1', '');
   assert.deepEqual(config.value.columns, ['Sprint 1', '(no value)']);
+});
+
+test('reset empties the board and restores default config', () => {
+  // beforeEach loaded a fixture; also drift the config away from defaults.
+  config.value = {
+    ...config.value,
+    columnField: 'Assignee',
+    swimlaneField: 'Status',
+  };
+  reset();
+  assert.deepEqual(cards.value, []);
+  assert.deepEqual(config.value, {
+    columnField: 'Status',
+    swimlaneField: '',
+    columns: [],
+    displayFields: ['Issue key', 'Summary'],
+    headers: [],
+  });
 });
 
 test('reorderColumns applies a user-chosen column order', () => {

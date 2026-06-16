@@ -1,5 +1,5 @@
 import { html, render } from 'htm/preact';
-import { cards, config, loadCards, syncColumns } from '../store.js';
+import { cards, config, loadCards, syncColumns, reset } from '../store.js';
 import { importCsv, exportCsv, downloadText } from '../csv.js';
 
 function Toolbar() {
@@ -19,6 +19,14 @@ function Toolbar() {
   const onExport = () => {
     const csv = exportCsv(cards.value, config.value);
     downloadText('cardwall-export.csv', csv);
+  };
+
+  const onReset = () => {
+    if (
+      confirm('Clear the board? This removes all cards and cannot be undone.')
+    ) {
+      reset();
+    }
   };
 
   /** @param {Event} e */
@@ -52,6 +60,7 @@ function Toolbar() {
         <input type="file" accept=".csv,text/csv" onChange=${onFile} hidden />
       </label>
       <button onClick=${onExport} disabled=${!count}>Export CSV</button>
+      <button onClick=${onReset} disabled=${!count}>Reset</button>
 
       ${count > 0 &&
       html`

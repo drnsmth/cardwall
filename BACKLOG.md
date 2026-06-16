@@ -28,7 +28,7 @@ Status: `[ ]` todo · `[~]` in progress · `[x]` done.
     logic (jscpd will catch it if we do). The empty-state copy can build on the
     existing `emptyState()` text in `board.js` and the README overview.
 
-- [ ] **Reset / clear board**
+- [x] **Reset / clear board**
   - Value: start over without manually clearing browser storage.
   - AC: a Reset control empties the board after a confirm; cards and config
     return to defaults and the `cardwall.v1` localStorage key is cleared;

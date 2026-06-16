@@ -19,17 +19,22 @@ import { signal, effect } from '@preact/signals';
 
 const STORAGE_KEY = 'cardwall.v1';
 
+/** @returns {Config} A fresh default board configuration. */
+function defaultConfig() {
+  return {
+    columnField: 'Status',
+    swimlaneField: '',
+    columns: [],
+    displayFields: ['Issue key', 'Summary'],
+    headers: [],
+  };
+}
+
 /** @type {import('@preact/signals').Signal<Card[]>} */
 export const cards = signal([]);
 
 /** @type {import('@preact/signals').Signal<Config>} */
-export const config = signal({
-  columnField: 'Status',
-  swimlaneField: '',
-  columns: [],
-  displayFields: ['Issue key', 'Summary'],
-  headers: [],
-});
+export const config = signal(defaultConfig());
 
 // Guarded so the module is safe to import outside a browser (tests, SSR).
 const storage = typeof localStorage !== 'undefined' ? localStorage : null;
@@ -62,6 +67,18 @@ export function restore() {
     console.warn('Could not restore board', e);
   } finally {
     restoring = false;
+  }
+}
+
+/** Clear the board back to empty defaults and wipe the saved copy. */
+export function reset() {
+  cards.value = [];
+  config.value = defaultConfig();
+  if (!storage) return;
+  try {
+    storage.removeItem(STORAGE_KEY);
+  } catch (e) {
+    console.warn('Could not clear saved board', e);
   }
 }
 
