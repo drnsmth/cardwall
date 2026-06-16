@@ -16,13 +16,17 @@ Status: `[ ]` todo · `[~]` in progress · `[x]` done.
 ## Now
 
 - [ ] **Import from the empty state**
-  - Value: a first-time user with a blank board can start without hunting for
-    the toolbar control.
-  - AC: the "No cards yet" view offers an import affordance; using it runs the
+  - Value: a first-time user with a blank board understands what the app is for
+    and can start importing without hunting for the toolbar control.
+  - AC: the "No cards yet" view briefly explains what Cardwall does (offline,
+    browser-only planning from a Jira CSV export; data never leaves the browser)
+    and how to import data (e.g. export issues from Jira to CSV, then use the
+    import control); the view offers an import affordance; using it runs the
     same parse + load flow and the board renders the imported cards.
   - Size: S
   - Notes: reuse the toolbar's import handler — don't duplicate the file→parse
-    logic (jscpd will catch it if we do).
+    logic (jscpd will catch it if we do). The empty-state copy can build on the
+    existing `emptyState()` text in `board.js` and the README overview.
 
 - [ ] **Reset / clear board**
   - Value: start over without manually clearing browser storage.
