@@ -1,0 +1,17 @@
+{
+  "name": "cardwall",
+  "version": "0.1.0",
+  "description": "Browser-only Jira card wall for offline planning",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "test": "node --test",
+    "typecheck": "tsc -p jsconfig.json"
+  },
+  "devDependencies": {
+    "@preact/signals": "2.0.1",
+    "htm": "3.1.1",
+    "papaparse": "5.4.1",
+    "preact": "10.26.4"
+  }
+}

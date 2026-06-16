@@ -31,21 +31,26 @@ export const config = signal({
   headers: [],
 });
 
+// Guarded so the module is safe to import outside a browser (tests, SSR).
+const storage =
+  typeof localStorage !== 'undefined' ? localStorage : null;
+
 // ---- Persistence: mirror state to localStorage on every change ----
 let restoring = true;
 effect(() => {
   const snapshot = { cards: cards.value, config: config.value };
-  if (restoring) return; // don't write during initial load
+  if (restoring || !storage) return; // don't write during initial load
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(snapshot));
+    storage.setItem(STORAGE_KEY, JSON.stringify(snapshot));
   } catch (e) {
     console.warn('Could not persist board', e);
   }
 });
 
 export function restore() {
+  if (!storage) { restoring = false; return; }
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = storage.getItem(STORAGE_KEY);
     if (raw) {
       const data = JSON.parse(raw);
       if (Array.isArray(data.cards)) cards.value = data.cards;
