@@ -1,0 +1,150 @@
+import Sortable from 'sortablejs';
+import { effect } from '@preact/signals';
+import { cards, config, moveCard } from './store.js';
+import { openCardEditor } from './ui/card-edit.js';
+
+const sortables = [];
+
+/**
+ * Render the board imperatively (Preact owns the chrome; Sortable owns the
+ * board DOM, so we keep them apart to avoid vdom/drag conflicts).
+ * @param {HTMLElement} root
+ */
+export function mountBoard(root) {
+  effect(() => {
+    // Touch the signals we depend on so the effect re-runs on change.
+    const cardList = cards.value;
+    const cfg = config.value;
+    render(root, cardList, cfg);
+  });
+}
+
+function render(root, cardList, cfg) {
+  destroySortables();
+  root.replaceChildren();
+
+  if (!cardList.length) {
+    root.append(emptyState());
+    return;
+  }
+
+  const swimlanes = cfg.swimlaneField
+    ? distinct(cardList.map((c) => c.swimlane))
+    : [''];
+
+  for (const lane of swimlanes) {
+    const laneEl = document.createElement('section');
+    laneEl.className = 'swimlane';
+
+    if (cfg.swimlaneField) {
+      const title = document.createElement('div');
+      title.className = 'swimlane-title';
+      title.textContent = lane || '(none)';
+      laneEl.append(title);
+    }
+
+    const columnsEl = document.createElement('div');
+    columnsEl_setup(columnsEl);
+
+    for (const col of cfg.columns) {
+      const colEl = renderColumn(col, lane, cardList, cfg);
+      columnsEl.append(colEl);
+    }
+    laneEl.append(columnsEl);
+    root.append(laneEl);
+  }
+}
+
+function columnsEl_setup(el) {
+  el.className = 'columns';
+}
+
+function renderColumn(col, lane, cardList, cfg) {
+  const colEl = document.createElement('div');
+  colEl.className = 'column';
+
+  const inCol = cardList.filter(
+    (c) => c.column === col && (!cfg.swimlaneField || c.swimlane === lane)
+  );
+
+  const header = document.createElement('div');
+  header.className = 'column-header';
+  header.innerHTML = `<span>${escapeHtml(col)}</span><span>${inCol.length}</span>`;
+  colEl.append(header);
+
+  const cardsEl = document.createElement('div');
+  cardsEl.className = 'cards';
+  cardsEl.dataset.column = col;
+  cardsEl.dataset.swimlane = lane;
+
+  for (const card of inCol) cardsEl.append(renderCard(card, cfg));
+  colEl.append(cardsEl);
+
+  // Drag-and-drop between every .cards list (shared group).
+  const s = Sortable.create(cardsEl, {
+    group: 'cardwall',
+    animation: 120,
+    ghostClass: 'sortable-ghost',
+    dragClass: 'sortable-drag',
+    onEnd: (evt) => {
+      const id = evt.item.dataset.id;
+      const target = evt.to;
+      moveCard(id, target.dataset.column, target.dataset.swimlane);
+    },
+  });
+  sortables.push(s);
+
+  return colEl;
+}
+
+function renderCard(card, cfg) {
+  const el = document.createElement('article');
+  el.className = 'card';
+  el.dataset.id = card.id;
+
+  const key = card.fields['Issue key'] || card.fields['Key'] || '';
+  const summary = card.fields['Summary'] || '';
+
+  const extra = cfg.displayFields
+    .filter((f) => f !== 'Issue key' && f !== 'Summary' && card.fields[f])
+    .map(
+      (f) =>
+        `<span><span class="field-label">${escapeHtml(f)}:</span> ${escapeHtml(card.fields[f])}</span>`
+    )
+    .join('');
+
+  el.innerHTML = `
+    ${key ? `<div class="key">${escapeHtml(key)}</div>` : ''}
+    ${summary ? `<div class="summary">${escapeHtml(summary)}</div>` : ''}
+    ${extra ? `<div class="meta">${extra}</div>` : ''}
+  `;
+
+  // Double-click opens the field editor (single click is reserved for drag).
+  el.addEventListener('dblclick', () => openCardEditor(card.id));
+  return el;
+}
+
+function emptyState() {
+  const el = document.createElement('div');
+  el.className = 'empty-state';
+  el.innerHTML = `
+    <h2>No cards yet</h2>
+    <p>Import a CSV exported from Jira to build your card wall.
+       Everything stays in your browser — nothing is uploaded.</p>
+  `;
+  return el;
+}
+
+function destroySortables() {
+  while (sortables.length) sortables.pop().destroy();
+}
+
+function distinct(arr) {
+  return [...new Set(arr)];
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, (c) =>
+    ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])
+  );
+}
