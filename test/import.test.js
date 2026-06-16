@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { importFile } from '../src/import.js';
-import { cards, config } from '../src/store.js';
+import { importFile } from '../docs/src/import.js';
+import { cards, config } from '../docs/src/store.js';
 
 test('importFile parses a Jira CSV File and loads it into the board', async () => {
   const csv =

@@ -7,9 +7,11 @@ import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import puppeteer from 'puppeteer-core';
 
+// The deployable site lives in docs/ (what GitHub Pages serves), so the e2e
+// server serves docs/ too.
 const ROOT = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
-  '../..',
+  '../../docs',
 );
 export const SAMPLE_CSV = path.join(ROOT, 'sample-jira.csv');
 const STORAGE_KEY = 'cardwall.v1';

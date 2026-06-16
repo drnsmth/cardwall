@@ -14,10 +14,10 @@ npm run lint                   # eslint .            (lint:fix to auto-fix)
 npm run format                 # prettier --write    (format:check to verify only)
 npm run dupes                  # jscpd duplication scan
 
-python3 -m http.server 8000    # serve locally — open http://localhost:8000
+python3 -m http.server -d docs 8000   # serve the site — open http://localhost:8000
 ```
 
-There is **no build step**. The deployed site is the source files as-is. ES modules require an HTTP server (not `file://`). Import `sample-jira.csv` to exercise the app.
+There is **no build step**. The deployable site lives in `docs/` and is served as-is (that's also what GitHub Pages publishes). ES modules require an HTTP server (not `file://`). Import `docs/sample-jira.csv` to exercise the app.
 
 ### Code quality gates
 
@@ -43,45 +43,45 @@ XP values to keep front of mind: **simplicity** (do the simplest thing that pass
 
 ### Version control: trunk-based development
 
-Commit directly to `main` (the trunk) in **small, atomic** increments — one logical change per commit — and integrate frequently. No long-lived feature branches; if something is genuinely large, use a short-lived branch merged back quickly. Every commit must stand on its own with `npm run check` green. The red→green→refactor steps map naturally onto separate small commits. `main` is also the deploy branch (GitHub Pages, root), so it must stay releasable at all times.
+Commit directly to `main` (the trunk) in **small, atomic** increments — one logical change per commit — and integrate frequently. No long-lived feature branches; if something is genuinely large, use a short-lived branch merged back quickly. Every commit must stand on its own with `npm run check` green. The red→green→refactor steps map naturally onto separate small commits. `main` is also the deploy branch (GitHub Pages serves the `docs/` folder), so it must stay releasable at all times.
 
 ## Architecture
 
-Browser-only Jira card wall: import a Jira CSV, rearrange cards into columns/swimlanes, edit fields, export CSV again. No backend; data lives only in the browser (localStorage). Dependencies load as native ES modules from a CDN via the import map in `index.html` — `package.json` deps exist only for type-checking, not bundling. Code is JavaScript with JSDoc types, checked by `tsc` (`checkJs`, `strict`).
+Browser-only Jira card wall: import a Jira CSV, rearrange cards into columns/swimlanes, edit fields, export CSV again. No backend; data lives only in the browser (localStorage). The deployable site is in `docs/` (so all source paths below are under `docs/src/…`). Dependencies load as native ES modules from a CDN via the import map in `docs/index.html` — `package.json` deps exist only for tooling, not bundling. Code is JavaScript with JSDoc types, checked by `tsc` (`checkJs`, `strict`).
 
 ### Two rendering systems, kept deliberately apart
 
-- **Preact (declarative)** owns the _chrome_: `src/ui/toolbar.js` and `src/ui/card-edit.js`, mounted into separate DOM roots (`#toolbar`, `#modal-root`).
-- **Plain imperative DOM + SortableJS** owns the _board_ (`src/board.js`, mounted into `#board`).
+- **Preact (declarative)** owns the _chrome_: `docs/src/ui/toolbar.js` and `docs/src/ui/card-edit.js`, mounted into separate DOM roots (`#toolbar`, `#modal-root`).
+- **Plain imperative DOM + SortableJS** owns the _board_ (`docs/src/board.js`, mounted into `#board`).
 
 They are separated because SortableJS mutates the DOM during drag, which would conflict with Preact's vdom diffing. Do not render board cards with Preact. `mountBoard` runs inside a signals `effect`; on any change to `cards`/`config` it tears down **all** Sortable instances and rebuilds the board (`destroySortables` → `render`).
 
-### State: signals store (`src/store.js`)
+### State: signals store (`docs/src/store.js`)
 
-Single source of truth is two `@preact/signals` signals: `cards` and `config`. An `effect` mirrors them to `localStorage` (key `cardwall.v1`) on every change. The `restoring` flag suppresses writes during initial `restore()` (called once in `app.js` before mounting). The store is guarded to import safely in Node (tests) where `localStorage` is absent.
+Single source of truth is two `@preact/signals` signals: `cards` and `config`. An `effect` mirrors them to `localStorage` (key `cardwall.v1`) on every change. The `restoring` flag suppresses writes during initial `restore()` (called once in `docs/app.js` before mounting). The store is guarded to import safely in Node (tests) where `localStorage` is absent.
 
 **Column ordering** (`orderColumnValues` → `syncColumns`) is a smart default: if any column value contains a digit (e.g. `Sprint 2`, `Sprint 10`) the values are natural-sorted so `2` precedes `10`; otherwise they keep first-seen order so workflow fields like `Status` stay in CSV order instead of alphabetising. Blank-valued cards collapse into a single trailing `(no value)` column (the backlog). Users can drag column **headers** to override this order (`board.js` → `reorderColumns`); the custom order lives in `config.columns` and persists via the localStorage effect until the next import or change of column field. `syncColumns` only runs on import and column-field change — not on card moves/edits — so a manual order is not clobbered by dragging cards.
 
-A **Card** carries both raw imported data and derived position:
+A **Card** carries both raw imported data and a derived position:
 
-- `fields` — the raw Jira CSV row (never mutated by drag/drop).
-- `column` / `swimlane` — the card's _current_ position, seeded from `fields[columnField]` on import but changed independently when dragged.
+- `fields` — the Jira CSV row; the **source of truth** for export.
+- `column` / `swimlane` — the card's _current_ position (derived view state), seeded from `fields` on import.
 
-So moving a card updates `column`/`swimlane` only; `exportCsv` reflects the current `column` back into `fields[columnField]` at export time (see below). Editing a card (`updateCard`) patches `fields`.
+These are kept in sync: `moveCard` writes the new column/swimlane back into `fields` (mapping `(no value)` → empty, and only writing the swimlane field when swimlanes are on); `updateCard` patches `fields` and re-derives `column`/`swimlane` when the edit changes the value of the column/swimlane field (only on an actual change, so a dragged position isn't clobbered). `addCard`/`deleteCard` append/remove and re-sync columns. Because `fields` always reflect position, `exportCsv` just writes the fields.
 
-### CSV (`src/csv.js`)
+### CSV (`docs/src/csv.js`)
 
 `parseCsvText` is the pure, testable core; `importCsv` is the thin `File`→text browser wrapper. Two Jira-specific behaviors that tests pin down:
 
 - **Card id** comes from `pickKeyField` ("Issue key" / "Key" / "Issue Key"), falling back to `row-<index>`.
 - **Duplicate headers** (Jira often exports several "Labels" columns) are kept distinct — PapaParse suffixes them and we preserve those keys.
 
-`exportCsv` writes the original headers in order and folds the current `column` back into `columnField`, mapping the sentinel `(no value)` → empty string. `(no value)` is the placeholder used throughout for cards/columns with an empty field value.
+`exportCsv` writes the original headers in order, taking each value straight from `fields` (positions are already folded in by `moveCard`/`updateCard`). `(no value)` is the placeholder used throughout for cards/columns with an empty field value.
 
 ### Flow
 
-`app.js` calls `restore()`, then mounts toolbar, board, and modal. Toolbar import → `loadCards` (resets board, picks columnField, seeds positions). Changing "Columns by"/"Swimlanes by" re-seeds every card's `column`/`swimlane` from the chosen field. Drag end → `moveCard`. Double-click a card → `openCardEditor` → modal → `updateCard`.
+`docs/app.js` calls `restore()`, then mounts toolbar, board, and modal. Import (toolbar or empty-state button) → `importFile` → `loadCards`. Changing "Columns by"/"Swimlanes by"/"Colour by" updates `config`. Drag end → `moveCard`. "+ Add card" (per column cell) → `addCard` then opens the editor. Double-click a card → `openCardEditor` → modal → `updateCard` or `deleteCard`.
 
 ## Deploy
 
-Push to `main`, enable GitHub Pages (_Deploy from a branch_ → `main` / root). All asset paths are relative so it works under a repo subpath. `.nojekyll` is present so Pages serves files verbatim.
+Push to `main`, enable GitHub Pages (_Deploy from a branch_ → `main` / `docs`). Only `docs/` is published; tests, configs, and the backlog stay at the repo root. All asset paths are relative so it works under a repo subpath. `docs/.nojekyll` makes Pages serve files verbatim.

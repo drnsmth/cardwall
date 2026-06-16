@@ -7,15 +7,16 @@ everything runs in the browser and your data never leaves it.**
 
 ## Run locally
 
-It's plain static files, but ES modules need to be served over HTTP (not
-`file://`). Any static server works:
+The deployable site lives in `docs/` (that's also what GitHub Pages serves). It's
+plain static files, but ES modules need to be served over HTTP (not `file://`).
+Any static server works:
 
 ```sh
-python3 -m http.server 8000
+python3 -m http.server -d docs 8000
 # then open http://localhost:8000
 ```
 
-Import `sample-jira.csv` to try it out.
+Import `docs/sample-jira.csv` to try it out.
 
 ## Development
 
@@ -39,9 +40,10 @@ run `npm run test:e2e` when changing UI behaviour.
 ## How it works
 
 - **No build pipeline.** Libraries load as native ES modules from a CDN via the
-  import map in `index.html`. There is nothing to compile or bundle.
+  import map in `docs/index.html`. There is nothing to compile or bundle.
 - **No GitHub Actions.** Push to `main` and enable GitHub Pages → _Deploy from a
-  branch_ → `main` / root. The pushed files are the site.
+  branch_ → `main` / `docs`. The files in `docs/` are the site; everything else
+  (tests, configs, backlog) stays at the repo root and isn't published.
 - **Types without a build.** Code is JavaScript with JSDoc annotations,
   type-checked in the editor via `jsconfig.json` (`tsc --noEmit`). No emit step.
 
@@ -56,19 +58,27 @@ run `npm run test:e2e` when changing UI behaviour.
 ## Layout
 
 ```
-index.html        import map + mount points
-app.js            bootstrap
-src/store.js      board model, config, localStorage persistence (signals)
-src/csv.js        Jira CSV import + export
-src/board.js      board rendering + SortableJS drag/drop (imperative)
-src/ui/toolbar.js import/export + column/swimlane field pickers (Preact)
-src/ui/card-edit.js  double-click card editor modal (Preact)
+docs/                  the deployable site (what Pages serves)
+  index.html           import map + mount points
+  app.js               bootstrap
+  styles.css
+  sample-jira.csv
+  src/store.js         board model, config, localStorage persistence (signals)
+  src/csv.js           Jira CSV import + export
+  src/import.js        File -> parse -> load (shared by toolbar + empty state)
+  src/colour.js        value -> palette colour map
+  src/board.js         board rendering + SortableJS drag/drop (imperative)
+  src/ui/toolbar.js    import/export/reset + field pickers (Preact)
+  src/ui/card-edit.js  card editor modal: edit/delete (Preact)
+test/                  unit tests (node --test)
+e2e/                   browser end-to-end tests
 ```
 
 ## Deploy to GitHub Pages
 
 1. Push this repo to GitHub.
-2. Settings → Pages → _Deploy from a branch_ → `main`, folder `/ (root)`.
+2. Settings → Pages → _Deploy from a branch_ → `main`, folder `/docs`.
 3. Visit `https://<user>.github.io/<repo>/`.
 
-All asset paths are relative (`./…`) so it works under the repo subpath.
+Only `docs/` is published. All asset paths are relative (`./…`) so it works under
+the repo subpath.

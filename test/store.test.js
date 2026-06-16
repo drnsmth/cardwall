@@ -12,7 +12,7 @@ import {
   reset,
   addCard,
   deleteCard,
-} from '../src/store.js';
+} from '../docs/src/store.js';
 
 const HEADERS = ['Issue key', 'Summary', 'Status', 'Assignee'];
 

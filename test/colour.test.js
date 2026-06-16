@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { colourMap } from '../src/colour.js';
+import { colourMap } from '../docs/src/colour.js';
 
 test('colourMap gives distinct values distinct hex colours', () => {
   const map = colourMap(['Story', 'Bug', 'Task']);

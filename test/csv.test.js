@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { parseCsvText, exportCsv } from '../src/csv.js';
+import { parseCsvText, exportCsv } from '../docs/src/csv.js';
 
 const SAMPLE = [
   'Issue key,Issue Type,Summary,Status,Assignee',

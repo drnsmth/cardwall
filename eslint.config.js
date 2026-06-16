@@ -15,9 +15,9 @@ export default [
     },
   },
 
-  // App + library code runs in the browser.
+  // App + library code (the deployable site in docs/) runs in the browser.
   {
-    files: ['app.js', 'src/**/*.js'],
+    files: ['docs/app.js', 'docs/src/**/*.js'],
     languageOptions: { globals: { ...globals.browser } },
   },
 
