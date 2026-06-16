@@ -39,6 +39,10 @@ Apply this in practice here:
 
 XP values to keep front of mind: **simplicity** (do the simplest thing that passes — YAGNI; no speculative config/abstraction), **feedback** (small steps, run tests constantly), **communication** (intention-revealing names and the existing JSDoc types), and **courage to refactor** (the tests are the safety net that makes that safe).
 
+### Version control: trunk-based development
+
+Commit directly to `main` (the trunk) in **small, atomic** increments — one logical change per commit — and integrate frequently. No long-lived feature branches; if something is genuinely large, use a short-lived branch merged back quickly. Every commit must stand on its own with `npm run check` green. The red→green→refactor steps map naturally onto separate small commits. `main` is also the deploy branch (GitHub Pages, root), so it must stay releasable at all times.
+
 ## Architecture
 
 Browser-only Jira card wall: import a Jira CSV, rearrange cards into columns/swimlanes, edit fields, export CSV again. No backend; data lives only in the browser (localStorage). Dependencies load as native ES modules from a CDN via the import map in `index.html` — `package.json` deps exist only for type-checking, not bundling. Code is JavaScript with JSDoc types, checked by `tsc` (`checkJs`, `strict`).
