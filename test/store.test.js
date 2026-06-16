@@ -10,6 +10,7 @@ import {
   reorderColumns,
   distinctValues,
   reset,
+  addCard,
 } from '../src/store.js';
 
 const HEADERS = ['Issue key', 'Summary', 'Status', 'Assignee'];
@@ -194,6 +195,47 @@ test('updateCard ignores unknown ids', () => {
   const before = JSON.stringify(cards.value);
   updateCard('nope', { Summary: 'x' });
   assert.equal(JSON.stringify(cards.value), before);
+});
+
+test('addCard appends a new card in the given column', () => {
+  const before = cards.value.length;
+  const id = addCard('Done', '');
+  assert.equal(cards.value.length, before + 1);
+  const c = cards.value.find((x) => x.id === id);
+  assert.ok(c, 'returns the new card id');
+  assert.equal(c.column, 'Done');
+  assert.equal(c.fields['Status'], 'Done');
+});
+
+test('addCard defaults to the first column when none is given', () => {
+  const id = addCard();
+  const c = cards.value.find((x) => x.id === id);
+  assert.equal(c.column, config.value.columns[0]);
+});
+
+test('addCard seeds the swimlane field when swimlanes are on', () => {
+  config.value = { ...config.value, swimlaneField: 'Assignee' };
+  const id = addCard('To Do', 'Bob');
+  const c = cards.value.find((x) => x.id === id);
+  assert.equal(c.swimlane, 'Bob');
+  assert.equal(c.fields['Assignee'], 'Bob');
+});
+
+test('addCard maps a (no value) target to a blank column field', () => {
+  const id = addCard('(no value)', '');
+  const c = cards.value.find((x) => x.id === id);
+  assert.equal(c.fields['Status'], '');
+});
+
+test('addCard re-syncs columns to include a brand-new column value', () => {
+  addCard('Backlog', '');
+  assert.ok(config.value.columns.includes('Backlog'));
+});
+
+test('addCard gives each new card a distinct id', () => {
+  const a = addCard('To Do', '');
+  const b = addCard('To Do', '');
+  assert.notEqual(a, b);
 });
 
 test('updateCard re-derives the column and syncs when the column field changes', () => {

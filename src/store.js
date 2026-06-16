@@ -171,6 +171,33 @@ export function reorderColumns(orderedValues) {
 }
 
 /**
+ * Add a new, empty card to the board in the given column/swimlane (defaulting
+ * to the first column / no swimlane). The column and swimlane are seeded into
+ * the card's fields so the placement survives export. New cards have no Jira
+ * key, so they get a generated id. Returns the new id for opening the editor.
+ * @param {string} [column]
+ * @param {string} [swimlane]
+ * @returns {string}
+ */
+export function addCard(column, swimlane = '') {
+  const { columnField, swimlaneField, headers, columns } = config.value;
+  const col = column || columns[0] || '(no value)';
+  /** @type {Object<string,string>} */
+  const fields = {};
+  for (const h of headers) fields[h] = '';
+  fields[columnField] = col === '(no value)' ? '' : col;
+  if (swimlaneField) fields[swimlaneField] = swimlane;
+
+  const id = `card-${crypto.randomUUID()}`;
+  cards.value = [
+    ...cards.value,
+    { id, fields, column: col, swimlane: swimlaneField ? swimlane : '' },
+  ];
+  syncColumns();
+  return id;
+}
+
+/**
  * Move a card to a new column/swimlane (called from drag-and-drop), writing the
  * new values back into the underlying fields so the change survives export. The
  * "(no value)" column maps back to an empty field; the swimlane field is only

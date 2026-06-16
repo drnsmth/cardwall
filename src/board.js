@@ -1,6 +1,6 @@
 import Sortable from 'sortablejs';
 import { effect } from '@preact/signals';
-import { cards, config, moveCard, reorderColumns } from './store.js';
+import { cards, config, moveCard, reorderColumns, addCard } from './store.js';
 import { importFile } from './import.js';
 import { colourMap } from './colour.js';
 import { openCardEditor } from './ui/card-edit.js';
@@ -152,9 +152,19 @@ function renderCell(col, lane, cardList, cfg) {
   );
   for (const card of inCell) cell.append(renderCard(card, cfg));
 
+  // Add a new card to this column/lane and open the editor to fill it in.
+  const add = document.createElement('button');
+  add.type = 'button';
+  add.className = 'add-card';
+  add.textContent = '+ Add card';
+  add.addEventListener('click', () => openCardEditor(addCard(col, lane)));
+  cell.append(add);
+
   // Drag-and-drop between every cell (shared group spans all columns/lanes).
+  // Only cards drag — the add button stays put (draggable: '.card').
   const s = Sortable.create(cell, {
     group: 'cardwall',
+    draggable: '.card',
     animation: 120,
     ghostClass: 'sortable-ghost',
     dragClass: 'sortable-drag',
@@ -194,10 +204,12 @@ function renderCard(card, cfg) {
     )
     .join('');
 
+  const empty = !key && !summary && !extra;
   el.innerHTML = `
     ${key ? `<div class="key">${escapeHtml(key)}</div>` : ''}
     ${summary ? `<div class="summary">${escapeHtml(summary)}</div>` : ''}
     ${extra ? `<div class="meta">${extra}</div>` : ''}
+    ${empty ? `<div class="summary muted">Untitled</div>` : ''}
   `;
 
   // Double-click opens the field editor (single click is reserved for drag).

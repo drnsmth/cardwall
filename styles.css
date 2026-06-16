@@ -151,6 +151,24 @@ body {
   border-radius: 6px;
   padding: 8px;
 }
+.add-card {
+  border: 1px dashed var(--border);
+  background: transparent;
+  color: var(--muted);
+  border-radius: 4px;
+  padding: 6px;
+  font-size: 12px;
+  cursor: pointer;
+  text-align: left;
+}
+.add-card:hover {
+  background: rgba(9, 30, 66, 0.04);
+  color: var(--text);
+}
+.card .summary.muted {
+  color: var(--muted);
+  font-style: italic;
+}
 
 /* ---- Card ---- */
 .card {

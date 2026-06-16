@@ -95,7 +95,7 @@ Status: `[ ]` todo · `[~]` in progress · `[x]` done.
     clearing it restores everything; column counts reflect the filtered view.
   - Size: M
 
-- [ ] **Add a card**
+- [x] **Add a card**
   - Value: capture work that isn't in the imported CSV without round-tripping
     through Jira — e.g. a new idea raised mid-workshop.
   - AC: an add control creates a new card that appears on the board in a sensible
