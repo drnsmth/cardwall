@@ -198,6 +198,16 @@ export function addCard(column, swimlane = '') {
 }
 
 /**
+ * Remove a card from the board and re-sync columns so a column that becomes
+ * empty drops out.
+ * @param {string} id
+ */
+export function deleteCard(id) {
+  cards.value = cards.value.filter((c) => c.id !== id);
+  syncColumns();
+}
+
+/**
  * Move a card to a new column/swimlane (called from drag-and-drop), writing the
  * new values back into the underlying fields so the change survives export. The
  * "(no value)" column maps back to an empty field; the swimlane field is only

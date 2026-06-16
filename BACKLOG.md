@@ -110,7 +110,7 @@ Status: `[ ]` todo · `[~]` in progress · `[x]` done.
     `row-<n>` fallback in `csv.js` is the existing precedent). Consider reusing
     the card-edit modal in a "new card" mode rather than a second form.
 
-- [ ] **Delete a card**
+- [x] **Delete a card**
   - Value: drop cards that are done-and-gone or were added by mistake.
   - AC: a delete control (with a confirm, like Reset) removes the card from the
     board and from storage; the export no longer includes it; if it was the last

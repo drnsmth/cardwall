@@ -171,3 +171,31 @@ test('a card can be added from a column and edited', async () => {
     await page.close();
   }
 });
+
+test('a card can be deleted from its editor', async () => {
+  const snapshot = board({ columns: ['To Do', 'Done'] }, [
+    card({ 'Issue key': 'P-1', Summary: 'Keep me', Status: 'To Do' }),
+    card({ 'Issue key': 'P-2', Summary: 'Delete me', Status: 'Done' }),
+  ]);
+  const page = await openBoard(browser, server.url, snapshot);
+  try {
+    page.on('dialog', (dialog) => dialog.accept()); // accept the confirm
+
+    await page.waitForSelector('.card[data-id="P-2"]');
+    // Open the editor via the card's dblclick handler (synthetic mouse
+    // double-clicks are swallowed by the drag layer, so dispatch directly).
+    await page.$eval('.card[data-id="P-2"]', (el) =>
+      el.dispatchEvent(new MouseEvent('dblclick', { bubbles: true })),
+    );
+    await page.waitForSelector('.modal .danger');
+    await page.click('.modal .danger');
+    await page.waitForFunction(() => !document.querySelector('.modal'));
+
+    const ids = await page.$$eval('.card', (els) =>
+      els.map((c) => c.dataset.id),
+    );
+    assert.deepEqual(ids, ['P-1'], 'deleted card is gone, others remain');
+  } finally {
+    await page.close();
+  }
+});

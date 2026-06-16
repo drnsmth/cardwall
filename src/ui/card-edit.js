@@ -1,6 +1,6 @@
 import { html, render } from 'htm/preact';
 import { signal } from '@preact/signals';
-import { cards, config, updateCard } from '../store.js';
+import { cards, config, updateCard, deleteCard } from '../store.js';
 
 /** @type {import('@preact/signals').Signal<string|null>} */
 const editingId = signal(null);
@@ -47,6 +47,13 @@ function Modal() {
     close();
   };
 
+  const onDelete = () => {
+    if (confirm('Delete this card? This cannot be undone.')) {
+      deleteCard(id);
+      close();
+    }
+  };
+
   return html`
     <div
       class="modal-backdrop"
@@ -69,6 +76,9 @@ function Modal() {
             `,
           )}
           <div class="actions">
+            <button type="button" class="danger" onClick=${onDelete}>
+              Delete
+            </button>
             <button type="button" onClick=${close}>Cancel</button>
             <button type="submit" class="primary">Save</button>
           </div>

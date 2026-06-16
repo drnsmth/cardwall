@@ -11,6 +11,7 @@ import {
   distinctValues,
   reset,
   addCard,
+  deleteCard,
 } from '../src/store.js';
 
 const HEADERS = ['Issue key', 'Summary', 'Status', 'Assignee'];
@@ -236,6 +237,32 @@ test('addCard gives each new card a distinct id', () => {
   const a = addCard('To Do', '');
   const b = addCard('To Do', '');
   assert.notEqual(a, b);
+});
+
+test('deleteCard removes the card from the board', () => {
+  const before = cards.value.length;
+  deleteCard('A-2');
+  assert.equal(cards.value.length, before - 1);
+  assert.ok(!cards.value.find((c) => c.id === 'A-2'));
+});
+
+test('deleteCard drops a column that becomes empty', () => {
+  // A-2 is the only card in Done.
+  deleteCard('A-2');
+  assert.ok(!config.value.columns.includes('Done'));
+  assert.deepEqual(config.value.columns, ['To Do']);
+});
+
+test('deleteCard keeps a column that still has cards', () => {
+  // A-1 and A-3 are both To Do.
+  deleteCard('A-1');
+  assert.ok(config.value.columns.includes('To Do'));
+});
+
+test('deleteCard ignores an unknown id', () => {
+  const before = cards.value.length;
+  deleteCard('nope');
+  assert.equal(cards.value.length, before);
 });
 
 test('updateCard re-derives the column and syncs when the column field changes', () => {
