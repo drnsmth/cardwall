@@ -46,6 +46,10 @@ run `npm run test:e2e` when changing UI behaviour.
   (tests, configs, backlog) stays at the repo root and isn't published.
 - **Types without a build.** Code is JavaScript with JSDoc annotations,
   type-checked in the editor via `jsconfig.json` (`tsc --noEmit`). No emit step.
+- **Your data stays put.** A Content-Security-Policy (`connect-src 'none'`,
+  `form-action 'none'`, `img-src 'self'`) stops the page from sending anything
+  over the network. Your CSV is read, edited, and exported entirely locally and
+  persisted to `localStorage`; nothing is uploaded.
 
 ## Libraries
 

@@ -3,6 +3,19 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!--
+      Content-Security-Policy: the app must never transmit user data. connect-src
+      'none' blocks all fetch/XHR/WebSocket/sendBeacon; form-action 'none' blocks
+      form posts; img-src 'self' blocks image beacons. script-src allows the
+      esm.sh CDN (library code only — no user data is sent to it) plus a hash for
+      the one inline script, the import map below. If you edit the import map, its
+      hash changes and the browser will block it (the e2e tests catch this) —
+      update the sha256-... below to the value the console reports.
+    -->
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self' https://esm.sh 'sha256-4OUStBQw3nPfNjXfbncvXagbP61xeIyQgE/vpgVkQmU='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'"
+    />
     <title>Cardwall — offline Jira card wall</title>
     <link rel="stylesheet" href="./styles.css" />
     <!--
